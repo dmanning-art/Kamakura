@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐕🐯 鎌倉ライフスコア</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@400;700&display=swap');
+
+  :root {
+    --ink:     #1a1a2e;
+    --paper:   #faf7f2;
+    --muted:   #e8e2d8;
+    --accent1: #c45e3e;
+    --accent2: #4a7c6f;
+    --accent3: #e8a83e;
+    --radius:  12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 22px 20px 18px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    background:repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(255,255,255,.03) 18px,rgba(255,255,255,.03) 20px);
+  }
+  .mascots { font-size:2.6rem; letter-spacing:.4rem; margin-bottom:4px; position:relative; }
+  header h1 { font-family:'Noto Serif JP',serif; font-size:1.45rem; font-weight:700; letter-spacing:.1em; position:relative; }
+  header p  { font-size:.72rem; opacity:.55; margin-top:3px; letter-spacing:.05em; position:relative; }
+
+  .tabs {
+    display:flex;
+    border-bottom:2px solid var(--muted);
+    background:white;
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+  }
+  .tab-btn {
+    flex:1;
+    padding:13px 6px;
+    border:none;
+    background:none;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.78rem;
+    font-weight:700;
+    color:#888;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    margin-bottom:-2px;
+    transition:all .2s;
+    letter-spacing:.04em;
+  }
+  .tab-btn.active { color:var(--accent1); border-bottom-color:var(--accent1); }
+
+  .container { max-width:680px; margin:0 auto; padding:0 14px; }
+  .tab-panel  { display:none; }
+  .tab-panel.active { display:block; padding-top:20px; }
+
+  .section-label {
+    font-size:.68rem;
+    font-weight:700;
+    letter-spacing:.15em;
+    text-transform:uppercase;
+    color:var(--accent2);
+    margin-bottom:10px;
+    padding-left:2px;
+  }
+
+  /* ── Property card ── */
+  .prop-card {
+    background:white;
+    border-radius:var(--radius);
+    margin-bottom:20px;
+    box-shadow:0 1px 4px rgba(0,0,0,.07);
+    border:1px solid var(--muted);
+    overflow:hidden;
+  }
+  .prop-card-header {
+    background:var(--ink);
+    color:white;
+    padding:14px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .prop-card-name {
+    font-family:'Noto Serif JP',serif;
+    font-size:1rem;
+    font-weight:700;
+    flex:1;
+  }
+  .total-badge {
+    background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:20px;
+    padding:4px 12px;
+    font-size:.78rem;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .total-badge.high { background:#4a7c6f; border-color:#4a7c6f; }
+  .total-badge.mid  { background:#c07000; border-color:#c07000; }
+  .total-badge.low  { background:#b03020; border-color:#b03020; }
+
+  .prop-body { padding:18px; }
+
+  /* ── Meta fields ── */
+  .meta-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 14px;
+    margin-bottom:18px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--muted);
+  }
+  .meta-field label {
+    display:block;
+    font-size:.65rem;
+    font-weight:700;
+    color:#aaa;
+    letter-spacing:.08em;
+    margin-bottom:3px;
+  }
+  .meta-field input {
+    width:100%;
+    border:1px solid var(--muted);
+    border-radius:7px;
+    padding:7px 9px;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.82rem;
+    color:var(--ink);
+    background:var(--paper);
+    outline:none;
+    transition:border-color .2s;
+  }
+  .meta-field input:focus { border-color:var(--accent2); }
+  .meta-field.full { grid-column:1/-1; }
+
+  /* ── Criteria section ── */
+  .crit-section-title {
+    font-size:.7rem;
+    font-weight:900;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent1);
+    margin:16px 0 10px;
+    padding-bottom:6px;
+    border-bottom:2px solid var(--muted);
+  }
+
+  .crit-row {
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    align-items:center;
+    gap:10px;
+    padding:7px 0;
+    border-bottom:1px solid #f0ede8;
+  }
+  .crit-row:last-child { border-bottom:none; }
+  .crit-num { font-size:.65rem; color:#ccc; font-weight:700; }
+  .crit-label { font-size:.82rem; color:#333; }
+  .stars { display:flex; gap:2px; }
+  .star {
+    font-size:1rem;
+    cursor:pointer;
+    opacity:.2;
+    transition:opacity .15s, transform .1s;
+    user-select:none;
+    line-height:1;
+  }
+  .star.filled { opacity:1; }
+  .star:hover  { transform:scale(1.2); }
+  .crit-val { font-size:.75rem; font-weight:700; color:#999; min-width:24px; text-align:right; }
+
+  /* ── Scorer tabs inside card ── */
+  .scorer-tabs {
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .scorer-tab-btn {
+    padding:6px 14px;
+    border:1px solid var(--muted);
+    border-radius:20px;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.78rem;
+    font-weight:700;
+    cursor:pointer;
+    background:none;
+    color:#aaa;
+    transition:all .15s;
+  }
+  .scorer-tab-btn.active-dog   { background:#e8f4fd; color:#2980b9; border-color:#a9cce3; }
+  .scorer-tab-btn.active-tiger { background:#fef9e7; color:#c07000; border-color:#f0c060; }
+
+  /* ── Sub-scores display ── */
+  .sub-scores {
+    display:flex;
+    gap:10px;
+    margin-top:4px;
+    flex-wrap:wrap;
+  }
+  .sub-score-chip {
+    font-size:.72rem;
+    padding:3px 9px;
+    border-radius:10px;
+    font-weight:700;
+  }
+  .chip-dog   { background:#e8f4fd; color:#2980b9; }
+  .chip-tiger { background:#fef9e7; color:#c07000; }
+
+  /* ── Feeling fields ── */
+  .feeling-group {
+    margin-top:16px;
+    padding-top:14px;
+    border-top:1px solid var(--muted);
+  }
+  .feeling-group label {
+    display:block;
+    font-size:.75rem;
+    font-weight:700;
+    color:#555;
+    margin-bottom:8px;
+  }
+  .feeling-options {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .feeling-btn {
+    padding:7px 14px;
+    border:1.5px solid var(--muted);
+    border-radius:20px;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.78rem;
+    cursor:pointer;
+    background:none;
+    color:#888;
+    transition:all .15s;
+  }
+  .feeling-btn.selected {
+    background:var(--ink);
+    color:white;
+    border-color:var(--ink);
+  }
+
+  /* ── Bullet note lists ── */
+  .bullet-notes { margin-top:14px; }
+  .bullet-notes label {
+    display:block;
+    font-size:.72rem;
+    font-weight:700;
+    color:#888;
+    letter-spacing:.05em;
+    margin-bottom:6px;
+  }
+  .bullet-input-row {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:6px;
+  }
+  .bullet-dot { color:#ccc; font-size:1rem; flex-shrink:0; }
+  .bullet-input {
+    flex:1;
+    border:none;
+    border-bottom:1px solid var(--muted);
+    padding:5px 4px;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.82rem;
+    color:var(--ink);
+    background:transparent;
+    outline:none;
+    transition:border-color .2s;
+  }
+  .bullet-input:focus { border-bottom-color:var(--accent2); }
+
+  /* ── Final impression ── */
+  .final-area {
+    margin-top:16px;
+    padding-top:14px;
+    border-top:1px solid var(--muted);
+  }
+  .final-area label {
+    display:block;
+    font-size:.72rem;
+    font-weight:700;
+    color:#888;
+    letter-spacing:.05em;
+    margin-bottom:6px;
+  }
+  .final-area textarea {
+    width:100%;
+    border:1px solid var(--muted);
+    border-radius:8px;
+    padding:8px 10px;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.82rem;
+    color:var(--ink);
+    resize:vertical;
+    min-height:60px;
+    background:var(--paper);
+    outline:none;
+    transition:border-color .2s;
+  }
+  .final-area textarea:focus { border-color:var(--accent2); }
+
+  /* ── Disagreement field ── */
+  .disagree-row {
+    margin-top:10px;
+    padding:10px 12px;
+    background:#fff8f0;
+    border-radius:8px;
+    border:1px solid #f0d0a0;
+  }
+  .disagree-row label {
+    font-size:.7rem;
+    font-weight:700;
+    color:#c07000;
+    display:block;
+    margin-bottom:5px;
+  }
+  .disagree-row input {
+    width:100%;
+    border:none;
+    background:transparent;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.82rem;
+    color:var(--ink);
+    outline:none;
+  }
+
+  /* ── Add & delete buttons ── */
+  .add-btn {
+    width:100%;
+    padding:14px;
+    border:2px dashed var(--muted);
+    border-radius:var(--radius);
+    background:none;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.85rem;
+    color:#aaa;
+    cursor:pointer;
+    transition:all .2s;
+    margin-bottom:20px;
+    letter-spacing:.05em;
+  }
+  .add-btn:hover { border-color:var(--accent2); color:var(--accent2); background:#f0f7f5; }
+  .delete-btn {
+    font-size:.7rem;
+    color:#ddd;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+    transition:color .15s;
+  }
+  .delete-btn:hover { color:var(--accent1); }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    z-index:100;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:white;
+    border-radius:16px;
+    padding:24px;
+    width:100%;
+    max-width:380px;
+    box-shadow:0 8px 32px rgba(0,0,0,.2);
+  }
+  .modal h2 { font-family:'Noto Serif JP',serif; font-size:1rem; margin-bottom:14px; }
+  .modal input {
+    width:100%;
+    border:1px solid var(--muted);
+    border-radius:8px;
+    padding:10px 12px;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.88rem;
+    color:var(--ink);
+    margin-bottom:10px;
+    outline:none;
+    transition:border-color .2s;
+  }
+  .modal input:focus { border-color:var(--accent2); }
+  .modal-actions { display:flex; gap:10px; margin-top:6px; }
+  .btn-primary {
+    flex:1;
+    padding:11px;
+    border:none;
+    border-radius:8px;
+    background:var(--ink);
+    color:white;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.85rem;
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:.05em;
+    transition:background .2s;
+  }
+  .btn-primary:hover { background:var(--accent1); }
+  .btn-cancel {
+    padding:11px 18px;
+    border:1px solid var(--muted);
+    border-radius:8px;
+    background:none;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:.85rem;
+    color:#888;
+    cursor:pointer;
+  }
+
+  /* ── Summary ── */
+  .summary-card {
+    background:white;
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin-bottom:20px;
+    border:1px solid var(--muted);
+    box-shadow:0 1px 4px rgba(0,0,0,.06);
+  }
+  .summary-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+  .summary-table th {
+    text-align:left;
+    padding:9px 12px;
+    background:var(--ink);
+    color:white;
+    font-weight:700;
+    letter-spacing:.05em;
+    font-size:.7rem;
+  }
+  .summary-table th:last-child,
+  .summary-table td:last-child { text-align:right; }
+  .summary-table tr:nth-child(even) td { background:#f5f5f0; }
+  .summary-table td { padding:10px 12px; border-bottom:1px solid var(--muted); vertical-align:middle; }
+  .rank-1 { font-weight:900; color:var(--accent1); }
+
+  .tip-box {
+    background:#f0f7f5;
+    border-left:4px solid var(--accent2);
+    border-radius:0 8px 8px 0;
+    padding:12px 14px;
+    font-size:.78rem;
+    color:#444;
+    line-height:1.7;
+    margin-bottom:16px;
+  }
+  .tip-box strong { color:var(--accent2); }
+
+  .empty-state { text-align:center; padding:40px 20px; color:#ccc; }
+  .empty-state .emoji { font-size:2.5rem; margin-bottom:10px; }
+  .empty-state p { font-size:.82rem; line-height:1.7; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mascots">🐕 🐯</div>
+  <h1>鎌倉ライフスコア</h1>
+  <p>ふたりの移住リサーチ — エリア & 物件評価</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('houses', this)">🏡 物件評価</button>
+  <button class="tab-btn" onclick="switchTab('summary', this)">📊 まとめ</button>
+</div>
+
+<!-- ══════════ HOUSES TAB ══════════ -->
+<div id="tab-houses" class="tab-panel active">
+  <div class="container">
+    <p class="section-label">物件を追加して採点</p>
+    <div id="houses-list"></div>
+    <button class="add-btn" onclick="openModal()">＋ 物件を追加</button>
+  </div>
+</div>
+
+<!-- ══════════ SUMMARY TAB ══════════ -->
+<div id="tab-summary" class="tab-panel">
+  <div class="container">
+    <div class="tip-box">
+      <strong>🐕 ダン & 🐯 絵理菜へ：</strong><br>
+      スコアは全18項目（各5点満点）の合計。最大 <strong>80点</strong>。
+      ふたりのスコアを別々に記録して、最後にここで比較できます。
+    </div>
+    <p class="section-label">物件ランキング</p>
+    <div id="house-summary"></div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL ══════════ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>🏡 物件を追加</h2>
+    <input type="text" id="modal-name" placeholder="物件名（例：長谷の一軒家A）">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
+      <button class="btn-primary" onclick="confirmAdd()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// CRITERIA  (split into area / house groups for display)
+// ─────────────────────────────────────────
+const AREA_CRITERIA = [
+  { key:'c1',  num:1,  label:'エリアの雰囲気' },
+  { key:'c2',  num:2,  label:'通勤のしやすさ' },
+  { key:'c3',  num:3,  label:'駅へのアクセス' },
+  { key:'c4',  num:4,  label:'スーパー・薬局・買い物の便利さ' },
+  { key:'c5',  num:5,  label:'自然' },
+  { key:'c6',  num:6,  label:'夜の雰囲気' },
+  { key:'c7',  num:7,  label:'静かさ・騒音' },
+];
+const HOUSE_CRITERIA = [
+  { key:'c8',  num:8,  label:'日当たり・明るさ' },
+  { key:'c9',  num:9,  label:'風通し・湿気の心配' },
+  { key:'c10', num:10, label:'広さ' },
+  { key:'c11', num:11, label:'間取りの使いやすさ' },
+  { key:'c12', num:12, label:'収納' },
+  { key:'c13', num:13, label:'キッチンの使いやすさ' },
+  { key:'c14', num:14, label:'風呂・トイレ・水回り' },
+  { key:'c15', num:15, label:'室内のきれいさ・状態' },
+  { key:'c16', num:16, label:'ファミリー向きか' },
+  { key:'c17', num:17, label:'将来の子育てのしやすさ' },
+  { key:'c18', num:18, label:'家賃に対する納得感' },
+];
+const ALL_CRITERIA = [...AREA_CRITERIA, ...HOUSE_CRITERIA];
+const MAX_SCORE = 80; // 18 × 5 × (per scorer shown separately)
+const MAX_PER_SCORER = 90; // 18×5
+
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+let houses = JSON.parse(localStorage.getItem('kls2_houses') || '[]');
+
+function save() { localStorage.setItem('kls2_houses', JSON.stringify(houses)); }
+
+function blankScores() {
+  const s = {};
+  ALL_CRITERIA.forEach(c => s[c.key] = 0);
+  return s;
+}
+function blankItem(name) {
+  return {
+    id: Date.now(),
+    name,
+    // meta
+    area:'', date:'', rent:'', initialCost:'', size:'', stationDist:'', agent:'',
+    // scores per scorer
+    scores: { dog: blankScores(), tiger: blankScores() },
+    // feelings per scorer
+    imagine: { dog:'', tiger:'' },
+    lifestyle: { dog:'', tiger:'' },
+    // bullet notes
+    pros: ['','',''],
+    cons: ['','',''],
+    questions: ['','',''],
+    // final
+    finalImpression:'',
+    disagreement:'',
+  };
+}
+
+// ─────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'summary') renderSummary();
+}
+
+// ─────────────────────────────────────────
+// MODAL
+// ─────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-name').focus(), 100);
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function confirmAdd() {
+  const name = document.getElementById('modal-name').value.trim();
+  if (!name) return;
+  houses.push(blankItem(name));
+  save();
+  renderHouses();
+  closeModal();
+}
+document.getElementById('modal-name').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAdd(); });
+document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+// ─────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────
+function scorerTotal(item, scorer) {
+  return ALL_CRITERIA.reduce((s, c) => s + (item.scores[scorer][c.key] || 0), 0);
+}
+function combinedTotal(item) {
+  return scorerTotal(item, 'dog') + scorerTotal(item, 'tiger');
+}
+function badgeClass(total) {
+  const pct = total / (MAX_PER_SCORER * 2);
+  if (pct >= .7) return 'high';
+  if (pct >= .4) return 'mid';
+  if (total === 0) return '';
+  return 'low';
+}
+
+function buildStars(itemId, scorer, key, currentVal) {
+  return [1,2,3,4,5].map(n =>
+    `<span class="star ${n <= currentVal ? 'filled' : ''}"
+      data-id="${itemId}" data-scorer="${scorer}" data-key="${key}" data-val="${n}"
+      onclick="setStar(this)">⭐</span>`
+  ).join('');
+}
+
+function buildCritRows(item, scorer, criteriaGroup) {
+  return criteriaGroup.map(c => {
+    const val = item.scores[scorer][c.key] || 0;
+    return `
+      <div class="crit-row">
+        <span class="crit-label">
+          <span class="crit-num">${c.num}.</span> ${c.label}
+        </span>
+        <div class="stars">${buildStars(item.id, scorer, c.key, val)}</div>
+        <span class="crit-val" id="val-${item.id}-${scorer}-${c.key}">${val || '－'}</span>
+      </div>`;
+  }).join('');
+}
+
+function buildBullets(itemId, field, values) {
+  return values.map((v, i) => `
+    <div class="bullet-input-row">
+      <span class="bullet-dot">・</span>
+      <input class="bullet-input" type="text" value="${escHtml(v)}"
+        placeholder="入力..."
+        data-id="${itemId}" data-field="${field}" data-idx="${i}"
+        onchange="setBullet(this)">
+    </div>`
+  ).join('');
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildCard(item) {
+  const dogTotal   = scorerTotal(item, 'dog');
+  const tigerTotal = scorerTotal(item, 'tiger');
+  const combined   = dogTotal + tigerTotal;
+  const bc         = badgeClass(combined);
+  const badgeText  = combined > 0 ? `合計 ${dogTotal + tigerTotal} / ${MAX_PER_SCORER * 2}` : '未採点';
+
+  // Active scorer panel state stored in DOM via data attr (default dog)
+  return `
+  <div class="prop-card" id="card-${item.id}">
+    <div class="prop-card-header">
+      <span class="prop-card-name">${escHtml(item.name)}</span>
+      <span class="total-badge ${bc}">${badgeText}</span>
+    </div>
+    <div class="prop-body">
+
+      <!-- META -->
+      <div class="meta-grid">
+        <div class="meta-field full">
+          <label>物件名</label>
+          <input type="text" value="${escHtml(item.name)}"
+            data-id="${item.id}" data-meta="name"
+            onchange="setMeta(this)" placeholder="物件名">
+        </div>
+        <div class="meta-field">
+          <label>エリア</label>
+          <input type="text" value="${escHtml(item.area)}"
+            data-id="${item.id}" data-meta="area"
+            onchange="setMeta(this)" placeholder="例：長谷">
+        </div>
+        <div class="meta-field">
+          <label>日付</label>
+          <input type="date" value="${escHtml(item.date)}"
+            data-id="${item.id}" data-meta="date"
+            onchange="setMeta(this)">
+        </div>
+        <div class="meta-field">
+          <label>家賃</label>
+          <input type="text" value="${escHtml(item.rent)}"
+            data-id="${item.id}" data-meta="rent"
+            onchange="setMeta(this)" placeholder="例：110,000円">
+        </div>
+        <div class="meta-field">
+          <label>初期費用</label>
+          <input type="text" value="${escHtml(item.initialCost)}"
+            data-id="${item.id}" data-meta="initialCost"
+            onchange="setMeta(this)" placeholder="例：330,000円">
+        </div>
+        <div class="meta-field">
+          <label>広さ・間取り</label>
+          <input type="text" value="${escHtml(item.size)}"
+            data-id="${item.id}" data-meta="size"
+            onchange="setMeta(this)" placeholder="例：3LDK / 85㎡">
+        </div>
+        <div class="meta-field">
+          <label>駅からの距離</label>
+          <input type="text" value="${escHtml(item.stationDist)}"
+            data-id="${item.id}" data-meta="stationDist"
+            onchange="setMeta(this)" placeholder="例：徒歩8分">
+        </div>
+        <div class="meta-field full">
+          <label>担当者・不動産会社</label>
+          <input type="text" value="${escHtml(item.agent)}"
+            data-id="${item.id}" data-meta="agent"
+            onchange="setMeta(this)" placeholder="例：〇〇不動産 山田様">
+        </div>
+      </div>
+
+      <!-- SCORER TABS -->
+      <div class="scorer-tabs" id="scorer-tabs-${item.id}">
+        <button class="scorer-tab-btn active-dog"
+          onclick="switchScorer(${item.id},'dog',this)">🐕 ダン</button>
+        <button class="scorer-tab-btn"
+          onclick="switchScorer(${item.id},'tiger',this)">🐯 絵理菜</button>
+      </div>
+
+      <!-- SCORING PANELS -->
+      <div id="scorer-panel-${item.id}-dog">
+        <div class="crit-section-title">🏘️ エリア評価（項目 1–7）</div>
+        ${buildCritRows(item, 'dog', AREA_CRITERIA)}
+        <div class="crit-section-title" style="margin-top:14px">🏠 物件評価（項目 8–18）</div>
+        ${buildCritRows(item, 'dog', HOUSE_CRITERIA)}
+        <div style="text-align:right;margin-top:10px;font-size:.8rem;font-weight:700;color:#2980b9">
+          🐕 ダン合計：<span id="subtotal-${item.id}-dog">${dogTotal}</span> / 90
+        </div>
+
+        <!-- Feelings -->
+        <div class="feeling-group">
+          <label>ここで暮らすイメージができるか（ダン）</label>
+          <div class="feeling-options">
+            ${['はい','いいえ','微妙'].map(o => `
+              <button class="feeling-btn ${item.imagine.dog===o?'selected':''}"
+                data-id="${item.id}" data-scorer="dog" data-field="imagine" data-val="${o}"
+                onclick="setFeeling(this)">${o}</button>`).join('')}
+          </div>
+          <label>ここに住むと生活は楽になりそうか（ダン）</label>
+          <div class="feeling-options">
+            ${['楽になりそう','普通','ストレスが増えそう'].map(o => `
+              <button class="feeling-btn ${item.lifestyle.dog===o?'selected':''}"
+                data-id="${item.id}" data-scorer="dog" data-field="lifestyle" data-val="${o}"
+                onclick="setFeeling(this)">${o}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div id="scorer-panel-${item.id}-tiger" style="display:none">
+        <div class="crit-section-title">🏘️ エリア評価（項目 1–7）</div>
+        ${buildCritRows(item, 'tiger', AREA_CRITERIA)}
+        <div class="crit-section-title" style="margin-top:14px">🏠 物件評価（項目 8–18）</div>
+        ${buildCritRows(item, 'tiger', HOUSE_CRITERIA)}
+        <div style="text-align:right;margin-top:10px;font-size:.8rem;font-weight:700;color:#c07000">
+          🐯 絵理菜合計：<span id="subtotal-${item.id}-tiger">${tigerTotal}</span> / 90
+        </div>
+
+        <!-- Feelings -->
+        <div class="feeling-group">
+          <label>ここで暮らすイメージができるか（絵理菜）</label>
+          <div class="feeling-options">
+            ${['はい','いいえ','微妙'].map(o => `
+              <button class="feeling-btn ${item.imagine.tiger===o?'selected':''}"
+                data-id="${item.id}" data-scorer="tiger" data-field="imagine" data-val="${o}"
+                onclick="setFeeling(this)">${o}</button>`).join('')}
+          </div>
+          <label>ここに住むと生活は楽になりそうか（絵理菜）</label>
+          <div class="feeling-options">
+            ${['楽になりそう','普通','ストレスが増えそう'].map(o => `
+              <button class="feeling-btn ${item.lifestyle.tiger===o?'selected':''}"
+                data-id="${item.id}" data-scorer="tiger" data-field="lifestyle" data-val="${o}"
+                onclick="setFeeling(this)">${o}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- SHARED NOTES -->
+      <div class="bullet-notes" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--muted)">
+        <label>✅ 良かった点</label>
+        ${buildBullets(item.id, 'pros', item.pros)}
+        <label style="margin-top:12px">⚠️ 気になった点</label>
+        ${buildBullets(item.id, 'cons', item.cons)}
+        <label style="margin-top:12px">❓ 不動産会社に聞くこと</label>
+        ${buildBullets(item.id, 'questions', item.questions)}
+      </div>
+
+      <!-- FINAL -->
+      <div class="final-area">
+        <label>📝 最終印象</label>
+        <textarea data-id="${item.id}" data-field="finalImpression"
+          onchange="setTextarea(this)"
+          placeholder="総合的な感想・決め手など…">${escHtml(item.finalImpression)}</textarea>
+      </div>
+
+      <div style="display:flex;gap:16px;margin-top:10px;padding:10px 0;border-top:1px solid var(--muted);font-size:.8rem;font-weight:700">
+        <span style="color:#2980b9">🐕 ダンスコア：${dogTotal} / 90</span>
+        <span style="color:#c07000">🐯 絵理菜スコア：${tigerTotal} / 90</span>
+      </div>
+
+      <div class="disagree-row">
+        <label>🔀 意見が分かれたポイント</label>
+        <input type="text" value="${escHtml(item.disagreement)}"
+          data-id="${item.id}" data-field="disagreement"
+          onchange="setTextareaInline(this)"
+          placeholder="例：キッチンの広さ、日当たりの評価など">
+      </div>
+
+      <div style="margin-top:14px;text-align:right">
+        <button class="delete-btn" onclick="deleteItem(${item.id})">✕ この物件を削除</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────
+// RENDER LIST
+// ─────────────────────────────────────────
+function renderHouses() {
+  const el = document.getElementById('houses-list');
+  if (!houses.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">🐕🐯</div><p>まだ物件がありません。<br>下のボタンから追加しよう！</p></div>`;
+    return;
+  }
+  el.innerHTML = houses.map(h => buildCard(h)).join('');
+}
+
+// ─────────────────────────────────────────
+// INTERACTIONS
+// ─────────────────────────────────────────
+function switchScorer(id, scorer, btn) {
+  const panels = ['dog','tiger'];
+  panels.forEach(s => {
+    const p = document.getElementById(`scorer-panel-${id}-${s}`);
+    if (p) p.style.display = s === scorer ? 'block' : 'none';
+  });
+  const tabsEl = document.getElementById(`scorer-tabs-${id}`);
+  tabsEl.querySelectorAll('.scorer-tab-btn').forEach(b => {
+    b.classList.remove('active-dog','active-tiger');
+  });
+  btn.classList.add(scorer === 'dog' ? 'active-dog' : 'active-tiger');
+}
+
+function setStar(el) {
+  const {id, scorer, key, val} = el.dataset;
+  const item = houses.find(h => h.id == id);
+  if (!item) return;
+  item.scores[scorer][key] = parseInt(val);
+  save();
+
+  // Update stars in this row
+  const row = el.closest('.crit-row');
+  row.querySelectorAll('.star').forEach(s => {
+    s.classList.toggle('filled', parseInt(s.dataset.val) <= parseInt(val));
+  });
+  // Update val display
+  const valEl = document.getElementById(`val-${id}-${scorer}-${key}`);
+  if (valEl) valEl.textContent = val;
+  // Update subtotal
+  const sub = document.getElementById(`subtotal-${id}-${scorer}`);
+  if (sub) sub.textContent = scorerTotal(item, scorer);
+  // Update header badge
+  updateBadge(item);
+}
+
+function updateBadge(item) {
+  const combined = scorerTotal(item,'dog') + scorerTotal(item,'tiger');
+  const badge = document.querySelector(`#card-${item.id} .total-badge`);
+  if (!badge) return;
+  badge.className = 'total-badge ' + badgeClass(combined);
+  badge.textContent = combined > 0 ? `合計 ${combined} / ${MAX_PER_SCORER*2}` : '未採点';
+  // Also update the score line at bottom
+  const scoreBar = document.querySelector(`#card-${item.id} .prop-body > div[style*="gap:16px"]`);
+  if (scoreBar) {
+    scoreBar.innerHTML = `
+      <span style="color:#2980b9">🐕 ダンスコア：${scorerTotal(item,'dog')} / 90</span>
+      <span style="color:#c07000">🐯 絵理菜スコア：${scorerTotal(item,'tiger')} / 90</span>`;
+  }
+}
+
+function setMeta(el) {
+  const {id, meta} = el.dataset;
+  const item = houses.find(h => h.id == id);
+  if (!item) return;
+  item[meta] = el.value;
+  if (meta === 'name') {
+    const nameEl = document.querySelector(`#card-${id} .prop-card-name`);
+    if (nameEl) nameEl.textContent = el.value;
+  }
+  save();
+}
+
+function setFeeling(el) {
+  const {id, scorer, field, val} = el.dataset;
+  const item = houses.find(h => h.id == id);
+  if (!item) return;
+  item[field][scorer] = val;
+  save();
+  // Update button states in same group
+  const parent = el.closest('.feeling-options');
+  parent.querySelectorAll('.feeling-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.val === val);
+  });
+}
+
+function setBullet(el) {
+  const {id, field, idx} = el.dataset;
+  const item = houses.find(h => h.id == id);
+  if (!item) return;
+  item[field][parseInt(idx)] = el.value;
+  save();
+}
+
+function setTextarea(el) {
+  const {id, field} = el.dataset;
+  const item = houses.find(h => h.id == id);
+  if (!item) return;
+  item[field] = el.value;
+  save();
+}
+
+function setTextareaInline(el) {
+  const {id, field} = el.dataset;
+  const item = houses.find(h => h.id == id);
+  if (!item) return;
+  item[field] = el.value;
+  save();
+}
+
+function deleteItem(id) {
+  if (!confirm('この物件を削除しますか？')) return;
+  houses = houses.filter(h => h.id != id);
+  save();
+  renderHouses();
+}
+
+// ─────────────────────────────────────────
+// SUMMARY
+// ─────────────────────────────────────────
+function renderSummary() {
+  const el = document.getElementById('house-summary');
+  if (!houses.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">📋</div><p>まだ物件がありません</p></div>`;
+    return;
+  }
+  const medals = ['🥇','🥈','🥉'];
+  const sorted = [...houses].map(h => ({
+    ...h,
+    dog: scorerTotal(h,'dog'),
+    tiger: scorerTotal(h,'tiger'),
+    combined: scorerTotal(h,'dog') + scorerTotal(h,'tiger')
+  })).sort((a,b) => b.combined - a.combined);
+
+  const rows = sorted.map((h, i) => {
+    const pct = Math.round(h.combined / (MAX_PER_SCORER*2) * 100);
+    const bar = `<div style="background:var(--muted);border-radius:4px;height:5px;min-width:60px;overflow:hidden">
+      <div style="width:${pct}%;height:100%;background:${pct>=70?'var(--accent2)':pct>=40?'var(--accent3)':'#e74c3c'};border-radius:4px"></div>
+    </div>`;
+    return `<tr>
+      <td style="font-size:1rem">${medals[i]||''}</td>
+      <td class="${i===0?'rank-1':''}">${escHtml(h.name)}<br><small style="color:#aaa;font-weight:400">${escHtml(h.area||'')}</small></td>
+      <td><span style="color:#2980b9;font-weight:700">${h.dog}</span> / <span style="color:#c07000;font-weight:700">${h.tiger}</span></td>
+      <td>
+        <div style="font-weight:700;${i===0?'color:var(--accent1)':''}">${h.combined}<span style="font-size:.68rem;color:#aaa;font-weight:400"> / ${MAX_PER_SCORER*2}</span></div>
+        ${bar}
+      </td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="summary-card">
+      <table class="summary-table">
+        <thead><tr>
+          <th></th>
+          <th>物件</th>
+          <th>🐕 / 🐯</th>
+          <th>合計</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+renderHouses();
+</script>
+</body>
+</html>
